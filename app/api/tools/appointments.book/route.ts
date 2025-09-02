@@ -31,3 +31,14 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, bookingId, note: "Booked" });
 }
+
+import { NextResponse } from "next/server";
+export const runtime = 'nodejs';
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(()=>({}));
+  console.log("[TOOLS] appointments.book HIT", body);
+  const bookingId = "demo-" + Date.now();
+  console.log("[TOOLS] appointments.book RESPOND", bookingId);
+  return NextResponse.json({ ok:true, bookingId, note:"Booked" });
+}
