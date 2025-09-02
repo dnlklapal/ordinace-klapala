@@ -1,6 +1,5 @@
-// app/dashboard/page.tsx — verze bez SWR a bez "use client"
+// app/dashboard/page.tsx — verze bez SWR
 async function getFaq() {
-  // pokud máš frontend i backend v jednom projektu, ponech jen relativní cestu:
   const r = await fetch('/api/public/faq', { cache: 'no-store' });
   if (!r.ok) return { items: [] as any[] };
   return r.json();
