@@ -1,44 +1,28 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+
+export const runtime = 'nodejs';
+
 const API_KEY = process.env.TOOLS_API_KEY;
 
 export async function POST(req: Request) {
+  // API key check, if set
   if (API_KEY && req.headers.get("x-api-key") !== API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, datetime, type } = await req.json();
+  // Parse request body safely
+  const { name, datetime, type } = await req.json().catch(() => ({}));
 
+  // Field validation
   if (!name || !datetime || !type) {
     return NextResponse.json({ ok: false, note: "Missing fields" }, { status: 400 });
   }
 
-  const bookingId = crypto.randomUUID();
-  return NextResponse.json({ ok: true, bookingId, note: "Booked" });
-}
-
-import { NextResponse } from "next/server";
-
-export const runtime = 'nodejs';
-
-export async function POST(req: Request) {
-  const body = await req.json();
-  console.log("[TOOLS] appointments.book HIT", body);
-
-  // Fake odpověď
-  const bookingId = "demo-" + Date.now();
+  // Generate bookingId
+  const bookingId = crypto.randomUUID?.() || ("demo-" + Date.now());
+  console.log("[TOOLS] appointments.book HIT", { name, datetime, type });
   console.log("[TOOLS] appointments.book RESPOND", bookingId);
 
   return NextResponse.json({ ok: true, bookingId, note: "Booked" });
-}
-
-import { NextResponse } from "next/server";
-export const runtime = 'nodejs';
-
-export async function POST(req: Request) {
-  const body = await req.json().catch(()=>({}));
-  console.log("[TOOLS] appointments.book HIT", body);
-  const bookingId = "demo-" + Date.now();
-  console.log("[TOOLS] appointments.book RESPOND", bookingId);
-  return NextResponse.json({ ok:true, bookingId, note:"Booked" });
 }
