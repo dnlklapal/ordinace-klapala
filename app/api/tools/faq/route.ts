@@ -32,3 +32,13 @@ export async function GET() {
   console.log("[TOOLS] faq RESPOND", items);
   return NextResponse.json({ items });
 }
+
+import { NextResponse } from "next/server";
+export const runtime = 'nodejs';
+
+export async function POST(req: Request) {
+  console.log("[TOOLS] appointments.search HIT");
+  const slots = ["2025-09-02T09:00:00.000Z","2025-09-03T08:30:00.000Z"];
+  console.log("[TOOLS] appointments.search RESPOND", slots);
+  return NextResponse.json({ slots });
+}
