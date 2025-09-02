@@ -12,3 +12,19 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ slots: [slot1, slot2] });
 }
+
+import { NextResponse } from "next/server";
+
+export const runtime = 'nodejs'; // zajistí, že se logy ukážou v runtime logu
+
+export async function POST(req: Request) {
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0];
+  console.log("[TOOLS] appointments.search HIT from", ip);
+
+  // tvůj původní kód – zatím jen fake sloty:
+  const slots = ["2025-09-02T09:00:00.000Z", "2025-09-03T08:30:00.000Z"];
+
+  console.log("[TOOLS] appointments.search RESPOND", slots);
+  return NextResponse.json({ slots });
+}
+
