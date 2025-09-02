@@ -20,3 +20,19 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ patients });
 }
+
+import { NextResponse } from "next/server";
+
+export const runtime = 'nodejs';
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  console.log("[TOOLS] patients.search HIT", body);
+
+  const patients = [
+    { id: "p1", name: "Jan Novák", phone: "+420777000111", lastVisit: "2025-05-16T09:00:00.000Z" }
+  ];
+
+  console.log("[TOOLS] patients.search RESPOND", patients);
+  return NextResponse.json({ patients });
+}
