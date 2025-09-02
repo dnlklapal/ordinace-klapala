@@ -36,9 +36,12 @@ export async function GET() {
 import { NextResponse } from "next/server";
 export const runtime = 'nodejs';
 
-export async function POST(req: Request) {
-  console.log("[TOOLS] appointments.search HIT");
-  const slots = ["2025-09-02T09:00:00.000Z","2025-09-03T08:30:00.000Z"];
-  console.log("[TOOLS] appointments.search RESPOND", slots);
-  return NextResponse.json({ slots });
+export async function GET() {
+  console.log("[TOOLS] faq HIT");
+  const items = [
+    { title:"Preventivní prohlídka", answer:"cca 30 minut, hradí pojišťovna" },
+    { title:"Parkování", answer:"naproti u pošty" },
+  ];
+  console.log("[TOOLS] faq RESPOND", items.length);
+  return NextResponse.json({ items });
 }
