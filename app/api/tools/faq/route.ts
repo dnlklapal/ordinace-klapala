@@ -16,3 +16,19 @@ export async function GET(req: Request) {
     ]
   });
 }
+
+import { NextResponse } from "next/server";
+
+export const runtime = 'nodejs';
+
+export async function GET() {
+  console.log("[TOOLS] faq HIT");
+
+  const items = [
+    { title: "Preventivní prohlídka", answer: "cca 30 minut, hradí pojišťovna" },
+    { title: "Parkování", answer: "naproti u pošty" }
+  ];
+
+  console.log("[TOOLS] faq RESPOND", items);
+  return NextResponse.json({ items });
+}
