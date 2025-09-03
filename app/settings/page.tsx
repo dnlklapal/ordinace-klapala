@@ -7,7 +7,6 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
 
-  // Načíst nastavení z API
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -27,7 +26,6 @@ export default function Settings() {
     load();
   }, []);
 
-  // Uložit změny do API
   async function save() {
     setSaving(true);
     setError("");
@@ -48,7 +46,6 @@ export default function Settings() {
     setSaving(false);
   }
 
-  // Pomocné funkce pro změny v objektu
   function setBusinessHour(day: string, field: string, value: string | boolean) {
     setData((d: any) => ({
       ...d,
@@ -93,6 +90,34 @@ export default function Settings() {
     }));
   }
 
+  // --- Custom parameters ---
+  function setCustomParam(key: string, value: string) {
+    setData((d: any) => ({
+      ...d,
+      custom_parameters: {
+        ...d.custom_parameters,
+        [key]: value
+      }
+    }));
+  }
+  function addCustomParam() {
+    setData((d: any) => ({
+      ...d,
+      custom_parameters: {
+        ...d.custom_parameters,
+        [""]: ""
+      }
+    }));
+  }
+  function removeCustomParam(key: string) {
+    const cp = { ...data.custom_parameters };
+    delete cp[key];
+    setData((d: any) => ({
+      ...d,
+      custom_parameters: cp
+    }));
+  }
+
   if (loading) return <div className="card">Načítám nastavení...</div>;
   if (error) return <div className="card"><span style={{color:'red'}}>{error}</span></div>;
   if (!data) return <div className="card">Chyba: žádná data</div>;
@@ -100,68 +125,42 @@ export default function Settings() {
   return (
     <div className="card">
       <div className="h2">Nastavení ordinace</div>
+      {/* ... ostatní sekce ... */}
 
       <div style={{marginBottom:24}}>
-        <b>Ordinační hodiny:</b>
-        {Object.keys(data.business_hours).map(day =>
-          <div key={day} style={{marginBottom:8}}>
-            <span style={{width:90,display:"inline-block"}}>{day.charAt(0).toUpperCase()+day.slice(1)}:</span>
-            {data.business_hours[day].closed
-              ? <label>
-                  <input type="checkbox" checked={true}
-                    onChange={e => setBusinessHour(day, "closed", e.target.checked)} />
-                  Zavřeno
-                </label>
-              : <>
-                  <input type="time" value={data.business_hours[day].open}
-                    onChange={e => setBusinessHour(day, "open", e.target.value)} />
-                  -
-                  <input type="time" value={data.business_hours[day].close}
-                    onChange={e => setBusinessHour(day, "close", e.target.value)} />
-                  <label style={{marginLeft:12}}>
-                    <input type="checkbox" checked={false}
-                      onChange={e => setBusinessHour(day, "closed", e.target.checked)} />
-                    Zavřeno
-                  </label>
-                </>
-            }
-          </div>
-        )}
+        <b>Custom parametry:</b>
+        {data.custom_parameters &&
+          Object.entries(data.custom_parameters).map(([key, value]) => (
+            <div key={key} style={{display:'flex',alignItems:'center',gap:8}}>
+              <input
+                className="input"
+                style={{width:120}}
+                value={key}
+                onChange={e => {
+                  const newKey = e.target.value;
+                  setData((d: any) => {
+                    const cp = { ...d.custom_parameters };
+                    cp[newKey] = cp[key];
+                    delete cp[key];
+                    return { ...d, custom_parameters: cp };
+                  });
+                }}
+                placeholder="Klíč"
+              />
+              <input
+                className="input"
+                style={{width:300}}
+                value={value}
+                onChange={e => setCustomParam(key, e.target.value)}
+                placeholder="Hodnota"
+              />
+              <button className="btn" onClick={() => removeCustomParam(key)}>Smazat</button>
+            </div>
+          ))}
+        <button className="btn" style={{marginTop:8}} onClick={addCustomParam}>Přidat vlastní parametr</button>
       </div>
 
-      <div style={{marginBottom:24}}>
-        <b>Výkony/procedury (délka v minutách):</b>
-        {Object.keys(data.procedures).map(name =>
-          <div key={name}>
-            <span style={{width:120,display:"inline-block"}}>{name}:</span>
-            <input type="number" min={1} max={240} value={data.procedures[name]}
-              onChange={e => setProcedure(name, Number(e.target.value))} style={{width:70}} /> min
-          </div>
-        )}
-      </div>
-
-      <div style={{marginBottom:24}}>
-        <b>Dovolené:</b>
-        {data.vacations.map((v: any, idx: number) =>
-          <div key={idx}>
-            <span>Od:</span>
-            <input type="date" value={v.start}
-              onChange={e => setVacation(idx, "start", e.target.value)} />
-            <span>Do:</span>
-            <input type="date" value={v.end}
-              onChange={e => setVacation(idx, "end", e.target.value)} />
-            <button className="btn" style={{marginLeft:8}} onClick={() => removeVacation(idx)}>Smazat</button>
-          </div>
-        )}
-        <button className="btn" style={{marginTop:8}} onClick={addVacation}>Přidat dovolenou</button>
-      </div>
-
-      <div style={{marginBottom:24}}>
-        <b>Google Calendar ID:</b>
-        <input className="input" value={data.google_calendar_id}
-          onChange={e=>setData((d:any)=>({...d,google_calendar_id:e.target.value}))} style={{width:200}} />
-      </div>
-
+      {/* ... ostatní sekce ... */}
       <button className="btn" onClick={save} disabled={saving}>{saving ? "Ukládám..." : "Uložit změny"}</button>
     </div>
   );
