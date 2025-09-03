@@ -79,14 +79,14 @@ export default function Settings() {
   function addVacation() {
     setData((d: any) => ({
       ...d,
-      vacations: [...d.vacations, { start: "", end: "" }]
+      vacations: [...(d.vacations || []), { start: "", end: "" }]
     }));
   }
 
   function removeVacation(idx: number) {
     setData((d: any) => ({
       ...d,
-      vacations: d.vacations.filter((_: any, i: number) => i !== idx)
+      vacations: (d.vacations || []).filter((_: any, i: number) => i !== idx)
     }));
   }
 
@@ -100,6 +100,16 @@ export default function Settings() {
       }
     }));
   }
+  function changeCustomParamKey(oldKey: string, newKey: string) {
+    setData((d: any) => {
+      const cp = { ...d.custom_parameters };
+      if (newKey && newKey !== oldKey) {
+        cp[newKey] = cp[oldKey];
+        delete cp[oldKey];
+      }
+      return { ...d, custom_parameters: cp };
+    });
+  }
   function addCustomParam() {
     setData((d: any) => ({
       ...d,
@@ -110,41 +120,128 @@ export default function Settings() {
     }));
   }
   function removeCustomParam(key: string) {
-    const cp = { ...data.custom_parameters };
-    delete cp[key];
-    setData((d: any) => ({
-      ...d,
-      custom_parameters: cp
-    }));
+    setData((d: any) => {
+      const cp = { ...d.custom_parameters };
+      delete cp[key];
+      return { ...d, custom_parameters: cp };
+    });
   }
 
   if (loading) return <div className="card">Načítám nastavení...</div>;
   if (error) return <div className="card"><span style={{color:'red'}}>{error}</span></div>;
   if (!data) return <div className="card">Chyba: žádná data</div>;
 
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
   return (
     <div className="card">
       <div className="h2">Nastavení ordinace</div>
-      {/* ... ostatní sekce ... */}
+      
+      {/* Ordinační hodiny */}
+      <div style={{marginBottom:24}}>
+        <b>Ordinační hodiny:</b>
+        {days.map(day => (
+          <div key={day} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+            <span style={{width:80}}>{day}:</span>
+            <input
+              className="input"
+              style={{width:65}}
+              type="text"
+              value={data.business_hours?.[day]?.open ?? ""}
+              onChange={e => setBusinessHour(day, "open", e.target.value)}
+              disabled={data.business_hours?.[day]?.closed}
+              placeholder="--:--"
+            />
+            <span>-</span>
+            <input
+              className="input"
+              style={{width:65}}
+              type="text"
+              value={data.business_hours?.[day]?.close ?? ""}
+              onChange={e => setBusinessHour(day, "close", e.target.value)}
+              disabled={data.business_hours?.[day]?.closed}
+              placeholder="--:--"
+            />
+            <label style={{marginLeft:10}}>
+              <input
+                type="checkbox"
+                checked={!!data.business_hours?.[day]?.closed}
+                onChange={e => setBusinessHour(day, "closed", e.target.checked)}
+              />
+              Zavřeno
+            </label>
+          </div>
+        ))}
+      </div>
+      
+      {/* Výkony/procedury */}
+      <div style={{marginBottom:24}}>
+        <b>Výkony/procedury (délka v minutách):</b>
+        {data.procedures &&
+          Object.entries(data.procedures).map(([k, v]) => (
+            <div key={k} style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{width:120}}>{k}:</span>
+              <input
+                className="input"
+                style={{width:60}}
+                type="number"
+                value={String(v)}
+                onChange={e => setProcedure(k, Number(e.target.value))}
+              />
+              <span>min</span>
+            </div>
+          ))}
+      </div>
 
+      {/* Dovolené */}
+      <div style={{marginBottom:24}}>
+        <b>Dovolené:</b>
+        {(data.vacations || []).map((v: any, i: number) => (
+          <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <span>Od:</span>
+            <input
+              className="input"
+              type="date"
+              value={v.start}
+              onChange={e => setVacation(i, "start", e.target.value)}
+              style={{width:140}}
+            />
+            <span>Do:</span>
+            <input
+              className="input"
+              type="date"
+              value={v.end}
+              onChange={e => setVacation(i, "end", e.target.value)}
+              style={{width:140}}
+            />
+            <button className="btn" onClick={() => removeVacation(i)}>Smazat</button>
+          </div>
+        ))}
+        <button className="btn" style={{marginTop:8}} onClick={addVacation}>Přidat dovolenou</button>
+      </div>
+
+      {/* Google Calendar ID */}
+      <div style={{marginBottom:24}}>
+        <b>Google Calendar ID:</b>{" "}
+        <input
+          className="input"
+          style={{width:200}}
+          value={data.google_calendar_id ?? ""}
+          onChange={e => setData((d: any) => ({ ...d, google_calendar_id: e.target.value }))}
+        />
+      </div>
+
+      {/* Custom parametry */}
       <div style={{marginBottom:24}}>
         <b>Custom parametry:</b>
         {data.custom_parameters &&
-          Object.entries(data.custom_parameters).map(([key, value]) => (
-            <div key={key} style={{display:'flex',alignItems:'center',gap:8}}>
+          Object.entries(data.custom_parameters).map(([key, value], idx) => (
+            <div key={key+idx} style={{display:'flex',alignItems:'center',gap:8}}>
               <input
                 className="input"
                 style={{width:120}}
                 value={key}
-                onChange={e => {
-                  const newKey = e.target.value;
-                  setData((d: any) => {
-                    const cp = { ...d.custom_parameters };
-                    cp[newKey] = cp[key];
-                    delete cp[key];
-                    return { ...d, custom_parameters: cp };
-                  });
-                }}
+                onChange={e => changeCustomParamKey(key, e.target.value)}
                 placeholder="Klíč"
               />
               <input
@@ -160,7 +257,8 @@ export default function Settings() {
         <button className="btn" style={{marginTop:8}} onClick={addCustomParam}>Přidat vlastní parametr</button>
       </div>
 
-      {/* ... ostatní sekce ... */}
+      {/* Error a Uložit */}
+      {error && <div style={{color:"red",marginBottom:12}}>{error}</div>}
       <button className="btn" onClick={save} disabled={saving}>{saving ? "Ukládám..." : "Uložit změny"}</button>
     </div>
   );
