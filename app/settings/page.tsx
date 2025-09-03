@@ -150,7 +150,7 @@ export default function Settings() {
               <input
                 className="input"
                 style={{width:300}}
-                value={value}
+                value={String(value ?? "")}
                 onChange={e => setCustomParam(key, e.target.value)}
                 placeholder="Hodnota"
               />
